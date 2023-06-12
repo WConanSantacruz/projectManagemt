@@ -13,8 +13,7 @@ import trimesh
 from dotenv import load_dotenv
 
 load_dotenv()
-tempCarpet = "tempUnl"
-tempUnloaded=tempCarpet
+tempCarpet = "tempDir"
 
 def getActualGfolder(year,month):
     pathGoogle=os.getenv('GooglePath')
@@ -75,16 +74,6 @@ def cleanActualProjectCarpet(path):
     for file_path in file_list:
         os.remove(file_path)
 
-def get_files_by_extension(path, extensions):
-    files = []
-    for dirpath, dirnames, filenames in os.walk(path):
-        for filename in filenames:
-            print(filename)
-            file_path = os.path.join(dirpath, filename)
-            file_extension = os.path.splitext(filename)[1].lower()
-            if file_extension in extensions:
-                files.append(file_path)
-    return files
 
 def MainApp():
     fecha_actual = datetime.now()
@@ -95,7 +84,7 @@ def MainApp():
     if 'quotaNumber' not in st.session_state:
         st.session_state['quotaNumber'] = 1
 
-    st.write(st.session_state['Estado'])
+    # st.write(st.session_state['Estado'])
     rootdir = getActualGfolder(current_year,current_month)
     #Get the next quotaNumber
     if st.session_state['Estado'] == 0:
@@ -152,16 +141,23 @@ def MainApp():
                 formats.append(f".{i}")
 
             # Loading data
-            current_directory = os.getcwd() # Replace with the current directory path
-            parent_directory = os.path.dirname(current_directory)
-            print(current_directory)
-
-            data=get_files_by_extension(tempUnloaded,formats)
-            print(data)
-            print(formats)
+            data = st.file_uploader(f"Inserta los archivos para la cotización, solo {formats}", type=formats, accept_multiple_files=True)
+            st.markdown('---')
             if len(data) > 0:
+                # Converting files if requested
                 if st.button('Analiza los archivos'):
+                    cleanOldFiles()
+                    # Escritura de archivos en tempCarpet
+                    for cad in data:
+                        source = os.path.join(tempCarpet, cad.name)
+                        dest = os.path.splitext(source)[0] + '.stl'
+                        with open(source, "wb") as f:
+                            f.write(cad.getbuffer())
+                        
+                        st.write(f'Cargando: {os.path.basename(source)}...')
+                    
                     st.write('Analizando, ...')
+                    
                     command2Send = f'{sys.executable} CotizadorCMD.py {args[0]} {args[1]} {args[2]} '
                     print(command2Send)
                     os.system(command2Send)
