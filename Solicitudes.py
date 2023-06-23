@@ -24,7 +24,7 @@ def clean_temp_dir(temp_dir):
         os.remove(file_path)
 
 def MainApp():
-    st.title("Bienvenido al administrador de proyectos de CAPTIS")
+    st.title("Solicitudes de proyectos")
     response = requests.get(path2getQuotas, params=params)
     
     if response.status_code == 200:

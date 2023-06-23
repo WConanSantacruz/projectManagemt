@@ -95,7 +95,7 @@ def MainApp():
     if 'quotaNumber' not in st.session_state:
         st.session_state['quotaNumber'] = 1
 
-    st.write(st.session_state['Estado'])
+    #st.write(st.session_state['Estado'])
     rootdir = getActualGfolder(current_year,current_month)
     #Get the next quotaNumber
     if st.session_state['Estado'] == 0:

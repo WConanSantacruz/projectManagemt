@@ -13,7 +13,7 @@ import trimesh
 from dotenv import load_dotenv
 
 load_dotenv()
-tempCarpet = "tempDir"
+tempCarpet = "tempUnl"
 
 def getActualGfolder(year,month):
     pathGoogle=os.getenv('GooglePath')

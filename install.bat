@@ -12,6 +12,7 @@ pip install -v openpyxl
 pip install -v python-dotenv
 pip install -v meshio
 pip install -v wget
+pip install -v scipy
 
 echo "Ready"
 pause
