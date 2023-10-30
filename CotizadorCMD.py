@@ -10,40 +10,15 @@ import pandas as pd
 from PIL import Image
 import meshio
 
-supportedExtensions = (".stl", ".obj", ".dxf", "glb")
-convertibleExtensions = [".fbx"]
-
-def convert2STL(file2Conv, carpet):
-    file_ext = os.path.splitext(filename)[1]
-    if(file_ext == '.stl' or file_ext == ".STL"):
-        print("STL file detected")
-        return file2Conv
-    elif(file_ext == '.fbx'):
-        a = 1
-    elif(file_ext == '.step'):
-        # Load the STEP file
-        mesh = meshio.read(file2Conv)
-        fileName = os.path.basename(file2Conv)
-        genFile = carpet + "\\"+fileName+"conv.stl"
-        # Write the mesh to an STL file
-        meshio.write(genFile, mesh, file_format='stl')
-        return genFile
-    else:
-        raise Exception("No soportado")
-
-
 def getInfoMesh(actualFile, try2Fix):
     try:
-        # Lazy loading the mesh
         mesh = trimesh.exchange.load.load_mesh(actualFile)
-
         if not mesh.is_watertight and try2Fix:
             print("The STL file is being repaired.")
             if not (trimesh.repair.fill_holes(mesh) or trimesh.repair.fix_winding(mesh)):
                 trimesh.repair.stitch(mesh)
             else:
                 print('Repaired')
-
         volume = mesh.mass_properties['volume']
         print("The volume of the mesh is:", volume)
         Sx, Sy, Sz = np.ptp(mesh.vertices, axis=0)
@@ -133,7 +108,6 @@ totalMaterial = 0
 totalTiempo = 0
 renderImage = True
 
-#print(f"Formatos aceptados{trimesh.available_formats()}")
 formats = []
 for i in trimesh.available_formats():
     formats.append(f".{i}")
