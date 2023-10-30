@@ -5,10 +5,8 @@ import sys
 import pyvista as pv
 import pandas as pd
 import trimesh
-from trimesh import repair
 import pandas as pd
 from PIL import Image
-import meshio
 
 def getInfoMesh(actualFile, try2Fix):
     try:
@@ -39,9 +37,7 @@ def render3DModel(actualFile, carpet):
     
     photoName = os.path.splitext(fileName)[0]  # Use os.path.splitext to remove file extension
     p.screenshot(os.path.join(carpet, photoName + ".jpg"))
-    
     return photoName
-
 
 class item2Quota:
     def __init__(self, Name, Sx, Sy, Sz, Area, Volumen, TipoDeMaterial, Relleno, MaterialRequerido, Tiempo, PrecioSinIVA, PrecioConIVA):
@@ -61,7 +57,6 @@ class item2Quota:
 
     def setImage(self, Imagen):
         self.Imagen = Imagen
-
 
 if (len(sys.argv) < 3):
     raise Exception("Faltan parametros")
@@ -83,10 +78,8 @@ precioCarga = infoMaterial['PrecioCarga'].to_numpy()[0]
 print(
     f'Densidad:{Densidad},materialPrice:{materialPrice},precioCarga:{precioCarga}')
 
-
 factorDeVelocidad = 60
 AreaDeFilamentos = 1.75*1.75*3.14*300
-
 print("Costo por gramo del material"+str(materialPrice))
 
 FactorGanancia = 0.45
@@ -114,6 +107,19 @@ for i in trimesh.available_formats():
 
 extensiones = tuple(formats)
 
+NumFiles=0
+with os.scandir(carpeta) as it:
+    for entry in it:
+        if entry.is_file() and entry.name.lower().endswith(extensiones):
+            NumFiles=NumFiles+1
+
+extraPorLoad=precioCarga
+if NumFiles>1:
+    if NumFiles<4:
+        extraPorLoad=precioCarga/NumFiles
+    else:
+        extraPorLoad=(precioCarga+NumFiles*precioCarga/3)/NumFiles
+
 data = []
 with os.scandir(carpeta) as it:
     for entry in it:
@@ -133,7 +139,7 @@ with os.scandir(carpeta) as it:
             costoMaterial = materialNecesario*materialPrice
             costoTiempo = (tiempoParedes+tiempoVolumen) * \
                 (costoDia*FactorGanancia)/(10*60)
-            costo = costoMaterial+costoTiempo
+            costo = costoMaterial+costoTiempo+extraPorLoad
             CostoAntesDeIVA = costo*(1+FactorGanancia+FactorISR)
             CostoConIVA = CostoAntesDeIVA*(1+FactorIVA)
             totalSinIVA += CostoAntesDeIVA

@@ -91,7 +91,7 @@ def MainApp():
         cleanOldFiles()
         st.session_state['quotaNumber']=getNextQuotaNumber(rootdir)
         st.session_state['Estado']=1
-        st.experimental_rerun() 
+        st.rerun() 
     else:
         st.title("Cotizador Captis")
         st.markdown('---')
@@ -104,7 +104,7 @@ def MainApp():
             st.write("Se ha subido correctamente, puedes generar otra cotizacion")
             if(st.button("Generar una nueva cotización")):
                 st.session_state['Estado']=0
-                st.experimental_rerun() 
+                st.rerun() 
             return
         elif not(st.session_state['Estado']==1):
             st.write("Error")
@@ -218,19 +218,19 @@ def MainApp():
                         dfmat = pd.read_csv("resources\Materiales.csv")
                         infoMaterial = dfmat[dfmat["Material"] == getMaterial]
                         print(infoMaterial)
-                        precioCarga = infoMaterial['PrecioCarga'].to_numpy()[0]
+                        
+                        #precioCarga = infoMaterial['PrecioCarga'].to_numpy()[0]
+                        # numberOfElements = df['CostoConIVA'].count()
+                        # if numberOfElements<5:
+                        #     numberOfElements=5
 
-                        numberOfElements = df['CostoConIVA'].count()
-                        if numberOfElements<5:
-                            numberOfElements=5
-
-                        costoDeCarga=precioCarga/5*numberOfElements
-                        destination_worksheet.cell(row=start_row, column=1).value="Preparación y limpieza"
-                        destination_worksheet.cell(row=start_row, column=4).value=costoDeCarga
-                        destination_worksheet.cell(row=start_row, column=5).value=costoDeCarga*1.16
-                        destination_worksheet.cell(row=start_row, column=6).value=1
-                        destination_worksheet.cell(row=start_row, column=7).value=costoDeCarga*1.16
-                        start_row += 1
+                        # costoDeCarga=precioCarga/5*numberOfElements
+                        # destination_worksheet.cell(row=start_row, column=1).value="Preparación y limpieza"
+                        # destination_worksheet.cell(row=start_row, column=4).value=costoDeCarga
+                        # destination_worksheet.cell(row=start_row, column=5).value=costoDeCarga*1.16
+                        # destination_worksheet.cell(row=start_row, column=6).value=1
+                        # destination_worksheet.cell(row=start_row, column=7).value=costoDeCarga*1.16
+                        # start_row += 1
 
                         if envio:
                             destination_worksheet.cell(row=start_row, column=1).value="Envio nacional Fedex"
@@ -274,7 +274,7 @@ def MainApp():
                             st.session_state['Estado'] = 2
                             st.success("Uploaded")
                             if(st.button("Confirmar")):
-                                st.experimental_rerun()
+                                st.rerun()
                 else:
                     st.markdown('Aun no se han analizado los archivos')
             else:
