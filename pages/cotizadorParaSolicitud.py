@@ -13,7 +13,9 @@ import trimesh
 from dotenv import load_dotenv
 
 load_dotenv()
-tempCarpet = "tempUnl"
+
+tempCarpet = os.getenv('carpetaTemporal')
+scaledFolder=os.getenv('scaledFolder')
 tempUnloaded=tempCarpet
 
 def getActualGfolder(year,month):

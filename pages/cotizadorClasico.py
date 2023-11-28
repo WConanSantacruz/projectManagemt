@@ -13,7 +13,9 @@ import trimesh
 from dotenv import load_dotenv
 
 load_dotenv()
-tempCarpet = "tempUnl"
+tempCarpet = os.getenv('carpetaTemporal')
+scaledFolder=os.getenv('scaledFolder')
+savingFolder=f"{tempCarpet}\{scaledFolder}"
 
 def getActualGfolder(year,month):
     pathGoogle=os.getenv('GooglePath')
@@ -40,13 +42,23 @@ def cleanOldFiles():
     if not os.path.exists(tempCarpet):
         os.mkdir(tempCarpet)
 
+    print("DeletingFiles")
     # Delete files in tempDir
     file_list = glob.glob(os.path.join(tempCarpet, '*'))
     for file_path in file_list:
-        os.remove(file_path)
+        try:
+            if os.path.isfile(file_path):
+                print(f"Deleting file: {file_path}")
+                os.remove(file_path)
+            elif os.path.isdir(file_path):
+                print(f"Deleting directory: {file_path}")
+                shutil.rmtree(file_path)
+            else:
+                print(f"Not a file or directory: {file_path}")
+        except Exception as e:
+            print(f"Error deleting file {file_path}: {e}")
 
     files = os.listdir()
-    # Iterar sobre todos los archivos y eliminar aquellos que comiencen con "Cotizacion" y tengan la extensión .zip
     for file in files:
         if file.endswith(".zip"):
             os.remove(file)
@@ -234,10 +246,10 @@ def MainApp():
 
                         if envio:
                             destination_worksheet.cell(row=start_row, column=1).value="Envio nacional Fedex"
-                            destination_worksheet.cell(row=start_row, column=4).value=200
-                            destination_worksheet.cell(row=start_row, column=5).value=200*1.16
+                            destination_worksheet.cell(row=start_row, column=4).value=225
+                            destination_worksheet.cell(row=start_row, column=5).value=225*1.16
                             destination_worksheet.cell(row=start_row, column=6).value=1
-                            destination_worksheet.cell(row=start_row, column=7).value=200*1.16
+                            destination_worksheet.cell(row=start_row, column=7).value=225*1.16
                             start_row += 1
 
                         if estudiante:

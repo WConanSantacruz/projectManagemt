@@ -7,6 +7,8 @@ import pandas as pd
 import trimesh
 import pandas as pd
 from PIL import Image
+from dotenv import load_dotenv
+load_dotenv()
 
 def getInfoMesh(actualFile, try2Fix):
     try:
@@ -62,14 +64,13 @@ if (len(sys.argv) < 3):
     raise Exception("Faltan parametros")
 
 df = pd.read_csv("resources\Materiales.csv")
-
 print(sys.argv)
 material = sys.argv[1]
 infill = int(sys.argv[2])
 infill = infill/100.0
 try2Fix = (sys.argv[3] == 'True')
 
-carpeta = "tempUnl"
+carpeta = os.getenv('carpetaTemporal')
 infoMaterial = df[df["Material"] == material]
 Densidad = infoMaterial['Densidad'].to_numpy()[0]
 materialPrice = infoMaterial['PrecioGramo'].to_numpy()[0]
@@ -189,3 +190,4 @@ for image in images:
 
 # Save final image
 new_image.save(f'{carpeta}\\joined_image.jpg')
+ 
