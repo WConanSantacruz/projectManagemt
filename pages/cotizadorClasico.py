@@ -11,11 +11,16 @@ import streamlit as st
 import sys
 import trimesh
 from dotenv import load_dotenv
+import tkinter as tk
+from tkinter import ttk
 
 load_dotenv()
 tempCarpet = os.getenv('carpetaTemporal')
 scaledFolder=os.getenv('scaledFolder')
 savingFolder=f"{tempCarpet}\{scaledFolder}"
+
+def handle_radio_change():
+    selected_destination.set(destination_var.get())
 
 def getActualGfolder(year,month):
     pathGoogle=os.getenv('GooglePath')
@@ -245,12 +250,56 @@ def MainApp():
                         # start_row += 1
 
                         if envio:
-                            destination_worksheet.cell(row=start_row, column=1).value="Envio nacional Fedex"
-                            destination_worksheet.cell(row=start_row, column=4).value=225
-                            destination_worksheet.cell(row=start_row, column=5).value=225*1.16
-                            destination_worksheet.cell(row=start_row, column=6).value=1
-                            destination_worksheet.cell(row=start_row, column=7).value=225*1.16
+                            destination_worksheet.cell(row=start_row, column=1).value="Envio nacional Paquetexpress"
+                            root = tk.Tk()
+                            root.title("Seleccione el destino")
+                             # Variable para almacenar la opción seleccionada
+                            destination_var = tk.StringVar()
+
+                            # Inicializar la variable con el primer destino (puedes ajustar esto según tu lógica)
+                            destination_var.set("AGS")
+
+                            # Manejador de cambios en el radio button
+                            destination_var.trace_add("write", lambda *args: handle_radio_change())
+
+                            # Crear los radio buttons
+                            ags_radio = ttk.Radiobutton(root, text="Aguascalientes", variable=destination_var, value="AGS")
+                            mty_radio = ttk.Radiobutton(root, text="Monterrey", variable=destination_var, value="MTY")
+                            other_radio = ttk.Radiobutton(root, text="Otro", variable=destination_var, value="Other")
+
+                            # Colocar los radio buttons en la ventana
+                            ags_radio.pack()
+                            mty_radio.pack()
+                            other_radio.pack()
+
+                            # Correr la aplicación de Tkinter
+                            root.mainloop()
+
+                            # Ahora, destination_var.get() contiene la opción seleccionada (AGS, MTY, u Other)
+                            selected_destination = destination_var.get()
+                            # Calcular el costo del envío
+                            if selected_destination == "AGS":
+                                shipping_cost = 225  # Puedes ajustar este valor según tus necesidades
+                            elif selected_destination == "MTY":
+                                shipping_cost = 100  # Puedes ajustar este valor según tus necesidades
+                            else:
+                                shipping_cost = 225  # Costo para cuando seleccionen otro lugar
+
+                            # Dividir el costo del envío entre la cantidad de diseños subidos
+                            number_of_designs = len(data)
+                            if number_of_designs > 0:
+                                shipping_cost_per_design = shipping_cost / number_of_designs
+                            else:
+                                shipping_cost_per_design = 0
+
+                            # Actualizar el costo en la hoja de cálculo
+                            destination_worksheet.cell(row=start_row, column=4).value = shipping_cost_per_design
+                            destination_worksheet.cell(row=start_row, column=5).value = shipping_cost_per_design * 1.16
+                            destination_worksheet.cell(row=start_row, column=6).value = number_of_designs
+                            destination_worksheet.cell(row=start_row, column=7).value = shipping_cost_per_design * 1.16
+
                             start_row += 1
+                            
 
                         if estudiante:
                             destination_worksheet.cell(row=start_row, column=1).value="Descuento del 15%"
