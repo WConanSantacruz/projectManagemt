@@ -13,14 +13,12 @@ import trimesh
 from dotenv import load_dotenv
 import tkinter as tk
 from tkinter import ttk
+import numpy as np
 
 load_dotenv()
 tempCarpet = os.getenv('carpetaTemporal')
 scaledFolder=os.getenv('scaledFolder')
 savingFolder=f"{tempCarpet}\{scaledFolder}"
-
-def handle_radio_change():
-    selected_destination.set(destination_var.get())
 
 def getActualGfolder(year,month):
     pathGoogle=os.getenv('GooglePath')
@@ -91,7 +89,6 @@ def cleanActualProjectCarpet(path):
     for file_path in file_list:
         os.remove(file_path)
 
-
 def MainApp():
     fecha_actual = datetime.now()
     current_year = str(fecha_actual.year)
@@ -117,7 +114,6 @@ def MainApp():
         st.markdown(f"Folio de la cotizacion: {name2Quota}")
         if(st.session_state['Estado']==2):
             # Add title and subtitle to the main interface of the app
-
             st.write("Se ha subido correctamente, puedes generar otra cotizacion")
             if(st.button("Generar una nueva cotización")):
                 st.session_state['Estado']=0
@@ -130,12 +126,30 @@ def MainApp():
             #Datos generales
             cliente=st.text_input('Nombre del cliente')
             description=st.text_input('Descripcion corta')
-            envio=st.checkbox('Aplica envio')
             estudiante=st.checkbox("Es estudiante?")
             materialesInfo = pd.read_csv("resources\Materiales.csv")
-
+           
+            envio = st.radio(
+                'Selecciona el tipo de envio',
+                options=['Envio nacional Paquetexpress', 'Envio a punto de venta', 'Envio local Monterrey'])
+            
+            adressShipping = os.getenv('adressShipping')
+            shippingToSalesPoint=os.getenv('shippingToSalesPoint')
+            expressShipping=os.getenv('expressShipping')
+            
+            shipping_cost=0
+            if envio=='Envio nacional Paquetexpress':
+                shipping_cost = adressShipping  # Puedes ajustar este valor según tus necesidades
+            elif envio=='Envio a punto de venta':
+                shipping_cost = shippingToSalesPoint  # Puedes ajustar este valor según tus necesidades
+            else:
+                shipping_cost = expressShipping  # Puedes ajustar este valor según tus necesidades
+            
+            shipping_cost=float(shipping_cost)
+            print(f"envio: {shipping_cost}")
+            incluirElEnvio=st.checkbox("Incluir el costo del envio en el precio(Beta)",False)
+            
             opciones = materialesInfo['Material']
-
             material = st.radio(
                 "Elige el material👇",
                 opciones,
@@ -175,9 +189,14 @@ def MainApp():
                     
                     st.write('Analizando, ...')
                     
-                    command2Send = f'{sys.executable} CotizadorCMD.py {args[0]} {args[1]} {args[2]} '
-                    print(command2Send)
-                    os.system(command2Send)
+                    if incluirElEnvio:
+                        command2Send = f'{sys.executable} CotizadorCMD.py {args[0]} {args[1]} {args[2]} {int(shipping_cost)*100}'
+                        print(command2Send)
+                        os.system(command2Send)
+                    else:
+                        command2Send = f'{sys.executable} CotizadorCMD.py {args[0]} {args[1]} {args[2]} {0}'
+                        print(command2Send)
+                        os.system(command2Send)
                     
                     dest = os.path.join(tempCarpet, 'info.csv')
                     dest2 = os.path.join(tempCarpet, 'easy.csv')
@@ -211,6 +230,7 @@ def MainApp():
 
                         templateWorkbook = load_workbook(path2Template)
                         destination_worksheet = templateWorkbook['Quota']
+                        totals_worksheet=templateWorkbook['Datos']
                         if len(cliente)==0:
                             cliente="Cliente "+name2Quota
                         destination_worksheet['B3'].value = cliente
@@ -220,8 +240,6 @@ def MainApp():
 
                         df = df.assign(Cantidad=1)
                         df = df.assign(Subtotal=df['CostoConIVA'])
-
-                        total = df['CostoConIVA'].sum()
 
                         start_row = 12
                         for row in dataframe_to_rows(df, index=False, header=False):
@@ -236,75 +254,28 @@ def MainApp():
                         infoMaterial = dfmat[dfmat["Material"] == getMaterial]
                         print(infoMaterial)
                         
-                        #precioCarga = infoMaterial['PrecioCarga'].to_numpy()[0]
-                        # numberOfElements = df['CostoConIVA'].count()
-                        # if numberOfElements<5:
-                        #     numberOfElements=5
+                        if incluirElEnvio:
+                            shipping_cost=0
+                        destination_worksheet.cell(row=start_row, column=1).value=envio
+                        shipping_cost = shipping_cost  
+                        destination_worksheet.cell(row=start_row, column=4).value = shipping_cost
+                        destination_worksheet.cell(row=start_row, column=5).value = shipping_cost * 1.16
+                        destination_worksheet.cell(row=start_row, column=6).value = 1
+                        destination_worksheet.cell(row=start_row, column=7).value = shipping_cost * 1.16
+                        start_row += 1
 
-                        # costoDeCarga=precioCarga/5*numberOfElements
-                        # destination_worksheet.cell(row=start_row, column=1).value="Preparación y limpieza"
-                        # destination_worksheet.cell(row=start_row, column=4).value=costoDeCarga
-                        # destination_worksheet.cell(row=start_row, column=5).value=costoDeCarga*1.16
-                        # destination_worksheet.cell(row=start_row, column=6).value=1
-                        # destination_worksheet.cell(row=start_row, column=7).value=costoDeCarga*1.16
-                        # start_row += 1
-
-                        if envio:
-                            destination_worksheet.cell(row=start_row, column=1).value="Envio nacional Paquetexpress"
-                            root = tk.Tk()
-                            root.title("Seleccione el destino")
-                             # Variable para almacenar la opción seleccionada
-                            destination_var = tk.StringVar()
-
-                            # Inicializar la variable con el primer destino (puedes ajustar esto según tu lógica)
-                            destination_var.set("AGS")
-
-                            # Manejador de cambios en el radio button
-                            destination_var.trace_add("write", lambda *args: handle_radio_change())
-
-                            # Crear los radio buttons
-                            ags_radio = ttk.Radiobutton(root, text="Aguascalientes", variable=destination_var, value="AGS")
-                            mty_radio = ttk.Radiobutton(root, text="Monterrey", variable=destination_var, value="MTY")
-                            other_radio = ttk.Radiobutton(root, text="Otro", variable=destination_var, value="Other")
-
-                            # Colocar los radio buttons en la ventana
-                            ags_radio.pack()
-                            mty_radio.pack()
-                            other_radio.pack()
-
-                            # Correr la aplicación de Tkinter
-                            root.mainloop()
-
-                            # Ahora, destination_var.get() contiene la opción seleccionada (AGS, MTY, u Other)
-                            selected_destination = destination_var.get()
-                            # Calcular el costo del envío
-                            if selected_destination == "AGS":
-                                shipping_cost = 225  # Puedes ajustar este valor según tus necesidades
-                            elif selected_destination == "MTY":
-                                shipping_cost = 100  # Puedes ajustar este valor según tus necesidades
-                            else:
-                                shipping_cost = 225  # Costo para cuando seleccionen otro lugar
-
-                            # Dividir el costo del envío entre la cantidad de diseños subidos
-                            number_of_designs = len(data)
-                            if number_of_designs > 0:
-                                shipping_cost_per_design = shipping_cost / number_of_designs
-                            else:
-                                shipping_cost_per_design = 0
-
-                            # Actualizar el costo en la hoja de cálculo
-                            destination_worksheet.cell(row=start_row, column=4).value = shipping_cost_per_design
-                            destination_worksheet.cell(row=start_row, column=5).value = shipping_cost_per_design * 1.16
-                            destination_worksheet.cell(row=start_row, column=6).value = number_of_designs
-                            destination_worksheet.cell(row=start_row, column=7).value = shipping_cost_per_design * 1.16
-
-                            start_row += 1
-                            
+                        total = df['CostoConIVA'].sum()+float(shipping_cost)*1.16
 
                         if estudiante:
                             destination_worksheet.cell(row=start_row, column=1).value="Descuento del 15%"
                             destination_worksheet.cell(row=start_row, column=7).value=-total*0.15
+                            
+                        infoCsv = os.path.join(tempCarpet, "info.csv")
+                        dftotals = pd.read_csv(infoCsv)
+                        timeInDays = f"{np.round((dftotals['TiempoEstimado'].sum()/60/24+1)*1.61,0)}"
+                        totals_worksheet.cell(row=3, column=3).value=timeInDays
 
+                        st.markdown(f"Total de tiempo: {timeInDays} dias habiles")
                         templateWorkbook.save(outputFilename)
                         templateWorkbook.close()
 

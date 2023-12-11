@@ -69,6 +69,7 @@ material = sys.argv[1]
 infill = int(sys.argv[2])
 infill = infill/100.0
 try2Fix = (sys.argv[3] == 'True')
+shipping_cost=float(sys.argv[4])/100
 
 carpeta = os.getenv('carpetaTemporal')
 infoMaterial = df[df["Material"] == material]
@@ -113,14 +114,14 @@ with os.scandir(carpeta) as it:
     for entry in it:
         if entry.is_file() and entry.name.lower().endswith(extensiones):
             NumFiles=NumFiles+1
+print(f"Files: {NumFiles}")
 
 extraPorLoad=precioCarga
-if NumFiles>1:
-    if NumFiles<4:
-        extraPorLoad=precioCarga/NumFiles
-    else:
-        extraPorLoad=(precioCarga+NumFiles*precioCarga/3)/NumFiles
-
+if NumFiles<4:
+    extraPorLoad=(precioCarga+shipping_cost)/NumFiles
+else:
+    extraPorLoad=(precioCarga+NumFiles*precioCarga/3+shipping_cost)/NumFiles
+print(f"extra per load: {extraPorLoad}")
 data = []
 with os.scandir(carpeta) as it:
     for entry in it:
@@ -166,28 +167,36 @@ easy2read = df[['Nombre', 'Material', 'Relleno',
 easy2read.to_csv(carpeta + "\\"+'easy.csv', index=False)
 
 # Create empty list to store images
-images = []
-
 # Loop through images in folder and append to list
+numImages = 0
+images = []
 for filename in os.listdir(carpeta):
     if filename.endswith('.jpg') or filename.endswith('.png'):
         filepath = os.path.join(carpeta, filename)
         images.append(Image.open(filepath))
+        numImages += 1
+
+# Specify the aurum number (replace this with the actual value), that can generate the a longer image
+aurum_number = 1.618/2  # You can adjust this value based on your preference
+
+# Compute the number of rows based on the aurum number
+num_rows = max(int(numImages / aurum_number), 1)
 
 # Determine size of final image
-widths, heights = zip(*(i.size for i in images))
-total_width = sum(widths)
-max_height = max(heights)
+max_width = max(image.size[0] for image in images)
+total_height = sum(image.size[1] for image in images) // num_rows
 
-# Create new image with determined size
-new_image = Image.new('RGB', (total_width, max_height))
+# Create a new image with determined size
+new_image = Image.new('RGB', (max_width, total_height))
 
-# Paste images onto new image
-x_offset = 0
+# Paste images onto new image in a mosaic pattern
+x_offset, y_offset = 0, 0
 for image in images:
-    new_image.paste(image, (x_offset, 0))
-    x_offset += image.size[0]
+    new_image.paste(image, (x_offset, y_offset))
+    y_offset += image.size[1]
+    if y_offset >= total_height:
+        y_offset = 0
+        x_offset += max_width
 
-# Save final image
-new_image.save(f'{carpeta}\\joined_image.jpg')
- 
+# Save the final image
+new_image.save(os.path.join(carpeta, 'joined_image.jpg'))
