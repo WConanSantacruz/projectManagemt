@@ -33,9 +33,10 @@ def getNextQuotaNumber(projectFolder):
         d = os.path.join(projectFolder, file)
         if os.path.isdir(d):
             x = d.split('_')
-            number=int(x[2])
-            if number>maxNumber or number==maxNumber:
-                maxNumber=number
+            if len(x) >= 3 and x[2].isdigit():
+                number = int(x[2])
+                if number >= maxNumber:
+                    maxNumber = number
     maxNumber=maxNumber+1
     print(maxNumber)
     return maxNumber
