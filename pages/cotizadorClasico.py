@@ -127,8 +127,10 @@ def MainApp():
             #Datos generales
             cliente=st.text_input('Nombre del cliente')
             description=st.text_input('Descripcion corta')
+            concepto = st.selectbox('Tipo de servicio:', ['Servicio de manufactura aditiva', 'Diseño o modelado 3D', 'Venta de insumos', 'Capacitación'])
             estudiante=st.checkbox("Es estudiante?")
             materialesInfo = pd.read_csv("resources\Materiales.csv")
+
            
             envio = st.radio(
                 'Selecciona el tipo de envio',
@@ -235,9 +237,9 @@ def MainApp():
                         if len(cliente)==0:
                             cliente="Cliente "+name2Quota
                         destination_worksheet['B3'].value = cliente
-                        destination_worksheet['B4'].value = 'Servicio de manufactura aditiva'
-                        destination_worksheet['F3'].value = name2Quota
-                        destination_worksheet['F4'].value = fecha_actual.strftime("%d / %m / %y")
+                        destination_worksheet['B4'].value = concepto
+                        destination_worksheet['G1'].value = name2Quota
+                        destination_worksheet['G2'].value = fecha_actual.strftime("%d / %m / %y")
 
                         df = df.assign(Cantidad=1)
                         df = df.assign(Subtotal=df['CostoConIVA'])
