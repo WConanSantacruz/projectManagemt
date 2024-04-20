@@ -14,6 +14,8 @@ from dotenv import load_dotenv
 import tkinter as tk
 from tkinter import ttk
 import numpy as np
+from PIL import Image as PILImage, ImageDraw, ImageFont
+
 
 load_dotenv()
 tempCarpet = os.getenv('carpetaTemporal')
@@ -75,6 +77,25 @@ def areImagesGenerated():
             if (nombreA.endswith(".jpg")):
                 return True
     return False
+
+def combine_images(images):
+    """
+    Combina una lista de imágenes en una sola imagen.
+    """
+    # Obtener el tamaño de la imagen combinada
+    max_width = max(img.width for img in images)
+    total_height = sum(img.height for img in images)
+
+    # Crear una nueva imagen combinada con el tamaño adecuado
+    combined_image = PILImage.new("RGB", (max_width, total_height), color="white")
+    y_offset = 0
+
+    # Superponer cada imagen en la imagen combinada
+    for img in images:
+        combined_image.paste(img, (0, y_offset))
+        y_offset += img.height
+
+    return combined_image
 
 def areQuotaGenerated():
     for path in os.listdir(tempCarpet + "\\"):
@@ -212,16 +233,41 @@ def MainApp():
                     else:
                         st.markdown('Ha habido un error')
 
-                if areImagesGenerated:
+                 # Procesamiento de imágenes generadas
+                if areImagesGenerated():
                     if st.button('Mostrar imagenes de archivos'):
-                        for path in os.listdir(tempCarpet + "\\"):
-                            # check if current path is a file
+                        all_image_paths = []
+                        processed_image_paths = set()  # Conjunto para mantener un registro de las imágenes procesadas
+                        for path in os.listdir(tempCarpet):
+                            # Verificar si la ruta actual es un archivo de imagen
                             if os.path.isfile(os.path.join(tempCarpet, path)):
                                 nombreA = os.path.join(tempCarpet, path)
                                 if (nombreA.endswith(".jpg")):
-                                    st.markdown(nombreA)
-                                    st.image(nombreA)
+                                    # Verificar si la imagen ya ha sido procesada
+                                    if nombreA not in processed_image_paths:
+                                        img = PILImage.open(nombreA)
+                                        all_image_paths.append((nombreA, img))
+                                        processed_image_paths.add(nombreA)
 
+                        # Combinar todas las imágenes en una sola
+                        combined_image = combine_images([img for _, img in all_image_paths])
+
+                        # Guardar la imagen combinada
+                        join_image_path = os.path.join(tempCarpet, "joined_image.jpg")
+                        combined_image.save(join_image_path)
+
+                        # Mostrar la imagen combinada
+                        st.image(combined_image, caption="joined_image.jpg")
+
+                        num_images = len(all_image_paths)
+                        st.write(f"Total de imágenes encontradas: {num_images}")
+
+                        for img_path, _ in all_image_paths:
+                            st.image(PILImage.open(img_path), caption=os.path.basename(img_path), width=200)
+                    
+                     # Eliminar la imagen combinada de la lista de imágenes para que no se repita
+                        processed_image_paths.discard(join_image_path)
+                        
                 dest = os.path.join(tempCarpet, 'easy.csv')
                 if os.path.exists(dest):
                     if st.button('Preparar la cotizacion'):
