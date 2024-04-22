@@ -148,6 +148,8 @@ def MainApp():
             #Datos generales
             cliente=st.text_input('Nombre del cliente')
             description=st.text_input('Descripcion corta')
+            empresa=st.text_input('Empresa')
+            moneda = st.selectbox('Moneda:', ['MXN', 'USD'])
             concepto = st.selectbox('Tipo de servicio:', ['Servicio de manufactura aditiva', 'Diseño o modelado 3D', 'Venta de insumos', 'Capacitación'])
             estudiante=st.checkbox("Es estudiante?")
             materialesInfo = pd.read_csv("resources\Materiales.csv")
@@ -286,6 +288,9 @@ def MainApp():
                         destination_worksheet['B4'].value = concepto
                         destination_worksheet['G1'].value = name2Quota
                         destination_worksheet['G2'].value = fecha_actual.strftime("%d / %m / %y")
+                        destination_worksheet['G4'].value = moneda
+                        destination_worksheet['G4'].value = empresa
+
 
                         df = df.assign(Cantidad=1)
                         df = df.assign(Subtotal=df['CostoConIVA'])
