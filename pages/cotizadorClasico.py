@@ -386,9 +386,45 @@ def MainApp():
                    
     
             elif concepto == 'Venta de insumos':
-                # Mostrar campos específicos para Venta de insumos
-                # Aquí puedes agregar los campos necesarios para este tipo de servicio
-                ...
+                if 'num_insumos' not in st.session_state:
+                    st.session_state['num_insumos'] = 1
+                
+                st.subheader("Insumo")
+                col1, col2, col3 = st.columns([2, 1, 1])
+
+                with col1:
+                    # Muestra un campo de carga de archivos para que los usuarios carguen una imagen
+                    uploaded_files = st.file_uploader("Cargar imagen", type=["jpg", "png", "jpeg"], accept_multiple_files=True)
+                    # Comprueba si se ha cargado un archivo
+                    if uploaded_files is not None:
+                        # Itera sobre cada archivo cargado
+                        for i, uploaded_file in enumerate(uploaded_files):
+                            # Lee los datos del archivo cargado como bytes
+                            image_bytes = uploaded_file.read()
+                            # Muestra el botón de alternancia para la previsualización de la imagen
+                            toggle_image(image_bytes, f"Imagen {i+1}", f"checkbox_{i+1}")
+                        
+                with col2:
+                    presentacion = st.text_input('Presentacion (Litros, Gramos, Mililitros...)', "")
+
+                with col3:
+                    costo = st.text_input("Costo (cuánto nos cuesta a nosotros)", "")
+
+                    # Validación del formato de la cantidad monetaria
+                    if costo:
+                        try:
+                            costo = float(costo.replace(",", ""))  # Elimina las comas si las hay
+                            if costo < 0:
+                                st.error("El costo debe ser un valor positivo.")
+                            else:
+                                st.success(f"Costo válido: {costo}")
+                        except ValueError:
+                            st.error("Formato de costo incorrecto. Introduce un número válido.")
+
+                
+                # Botón para agregar otro elemento
+                if st.button("Agregar otro insumo"):
+                    st.session_state['num_insumos'] += 1
 
             elif concepto == 'Capacitación':
                 # Mostrar campos específicos para Capacitación
