@@ -388,35 +388,72 @@ def MainApp():
             elif concepto == 'Venta de insumos':
                 if 'num_insumos' not in st.session_state:
                     st.session_state['num_insumos'] = 1
-                
-                    st.subheader("Insumo")
 
-                    for i in range(st.session_state['num_insumos']):
-                        col1, col2, col3 = st.columns([1, 1, 1])
+                st.subheader("Insumo")
 
-                        with col1:
-                            descripciondeproducto = st.text_input(f'Descripción del producto {i+1}:', "")
-                                
-                        with col2:
-                            presentacion = st.text_input(f'Presentación (Litros, Gr, MM...) {i+1}:', "")
+                # Si el número de insumos es menor a 1, establecerlo a 1
+                if st.session_state['num_insumos'] < 1:
+                    st.session_state['num_insumos'] = 1
 
-                        with col3:
-                            costo = st.text_input(f"Costo (cuánto nos cuesta a nosotros) {i+1}:", "")
+                insumos_data = []
 
-                            # Validación del formato de la cantidad monetaria
-                            if costo:
-                                try:
-                                    costo = float(costo.replace(",", ""))  # Elimina las comas si las hay
-                                    if costo < 0:
-                                        st.error(f"El costo del producto {i+1} debe ser un valor positivo.")
-                                    else:
-                                        st.success(f"Costo válido del producto {i+1}: {costo}")
-                                except ValueError:
-                                    st.error(f"Formato de costo del producto {i+1} incorrecto. Introduce un número válido.")
+                for i in range(st.session_state['num_insumos']):
+                    col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
 
-                    # Botón para agregar otro elemento
-                    if st.button("Agregar otro insumo"):
-                        st.session_state['num_insumos'] += 1
+                    with col1:
+                        descripciondeproducto = st.text_input(f'Descripción del producto {i+1}:', "")
+                            
+                    with col2:
+                        cantidad = st.text_input(f'Cantidad {i+1}:', "")
+
+                    with col3:
+                        costo = st.text_input(f"Costo (cuánto nos cuesta) {i+1}:", "")
+
+                        # Validación del formato de la cantidad monetaria
+                        if costo:
+                            try:
+                                costo = float(costo.replace(",", ""))  # Elimina las comas si las hay
+                                if costo < 0:
+                                    st.error(f"El costo del producto {i+1} debe ser un valor positivo.")
+                            except ValueError:
+                                st.error(f"Formato de costo del producto {i+1} incorrecto. Introduce un número válido.")
+
+                    with col4:
+                        # Botón para eliminar la fila
+                        if st.session_state['num_insumos'] > 1:
+                            if st.button(f"Eliminar", help="Eliminar producto", key=f"delete_button_{i}"):
+                                # Eliminar el insumo correspondiente al índice actual
+                                st.session_state['num_insumos'] -= 1
+                                # Acción de eliminar el producto aquí
+
+                    # Almacenar los datos del insumo actual en la lista
+                    insumos_data.append({
+                        'Descripción': descripciondeproducto,
+                        'Cantidad': cantidad,
+                        'Costo': costo
+                    })
+
+                # Botón para agregar otro elemento
+                if st.button("Agregar otro insumo"):
+                    st.session_state['num_insumos'] += 1
+
+                # Botón para analizar los costos
+                if st.button("Analizar costos"):
+                    # Acción de analizar costos y calcular precio al público aquí
+                    st.write("Se analizarán los costos y se calculará el precio al público aquí.")
+                    # Aquí deberías incluir el cálculo del precio al público y cualquier otra lógica necesaria
+                    
+                    # Creamos un DataFrame con los datos de todos los insumos
+                    insumos_df = pd.DataFrame(insumos_data)
+
+                    # Se calcula el precio al público agregando el 35% al costo
+                    insumos_df['Precio al público'] = insumos_df['Costo'] * 1.35
+
+                    # Se muestra el DataFrame con el cálculo del precio al público
+                    st.dataframe(insumos_df)
+                    
+                    
+
 
               
             elif concepto == 'Capacitación':
