@@ -117,6 +117,26 @@ def toggle_image(image_bytes, caption, key):
     if show_image:
         st.image(image_bytes, caption=caption)
         
+def cargar_datos_distribuidor(marca):
+    # Leer el archivo Excel
+    df = pd.read_excel('resources\InventarioDistribuidores.xlsx')
+
+    # Filtrar los datos por la marca seleccionada
+    datos_marca = df[df['Marca'] == marca]
+
+    # Crear una lista para almacenar los datos de la marca seleccionada
+    datos_seleccionados = []
+
+    # Iterar sobre los datos de la marca seleccionada y almacenar la descripción y el precio de distribuidor
+    for index, row in datos_marca.iterrows():
+        descripcion = row['Descripción']
+        precio_distribuidor = row['Precio Distribuidor']
+
+        # Agregar los datos a la lista
+        datos_seleccionados.append({'Descripción': descripcion, 'Precio Distribuidor': precio_distribuidor})
+
+    return datos_seleccionados
+        
 def MainApp():
     fecha_actual = datetime.now()
     current_year = str(fecha_actual.year)
@@ -386,76 +406,105 @@ def MainApp():
                    
     
             elif concepto == 'Venta de insumos':
-                if 'num_insumos' not in st.session_state:
-                    st.session_state['num_insumos'] = 1
-
                 st.subheader("Insumo")
 
-                # Si el número de insumos es menor a 1, establecerlo a 1
-                if st.session_state['num_insumos'] < 1:
-                    st.session_state['num_insumos'] = 1
+                # Selección de marca
+                marca_seleccionada = st.selectbox("Selecciona la marca:", ["COLOR PLUS", "SUNLU", "Otro"])
 
-                insumos_data = []
+                if marca_seleccionada == "Otro":
+                    if 'num_insumos' not in st.session_state:
+                        st.session_state['num_insumos'] = 1
 
-                for i in range(st.session_state['num_insumos']):
-                    col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+                    st.subheader("Insumo")
 
-                    with col1:
-                        descripciondeproducto = st.text_input(f'Descripción del producto {i+1}:', "")
-                            
-                    with col2:
-                        cantidad = st.text_input(f'Cantidad {i+1}:', "")
+                    # Si el número de insumos es menor a 1, establecerlo a 1
+                    if st.session_state['num_insumos'] < 1:
+                        st.session_state['num_insumos'] = 1
 
-                    with col3:
-                        costo = st.text_input(f"Costo (cuánto nos cuesta) {i+1}:", "")
+                    insumos_data = []
 
-                        # Validación del formato de la cantidad monetaria
-                        if costo:
-                            try:
-                                costo = float(costo.replace(",", ""))  # Elimina las comas si las hay
-                                if costo < 0:
-                                    st.error(f"El costo del producto {i+1} debe ser un valor positivo.")
-                            except ValueError:
-                                st.error(f"Formato de costo del producto {i+1} incorrecto. Introduce un número válido.")
+                    for i in range(st.session_state['num_insumos']):
+                        col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
 
-                    with col4:
-                        # Botón para eliminar la fila
-                        if st.session_state['num_insumos'] > 1:
-                            if st.button(f"Eliminar", help="Eliminar producto", key=f"delete_button_{i}"):
-                                # Eliminar el insumo correspondiente al índice actual
-                                st.session_state['num_insumos'] -= 1
-                                # Acción de eliminar el producto aquí
+                        with col1:
+                            descripciondeproducto = st.text_input(f'Descripción del producto {i+1}:', "")
+                                
+                        with col2:
+                            cantidad = st.text_input(f'Cantidad {i+1}:', "")
 
-                    # Almacenar los datos del insumo actual en la lista
-                    insumos_data.append({
-                        'Descripción': descripciondeproducto,
-                        'Cantidad': cantidad,
-                        'Costo': costo
-                    })
+                        with col3:
+                            costo = st.text_input(f"Costo (cuánto nos cuesta) {i+1}:", "")
 
-                # Botón para agregar otro elemento
-                if st.button("Agregar otro insumo"):
-                    st.session_state['num_insumos'] += 1
+                            # Validación del formato de la cantidad monetaria
+                            if costo:
+                                try:
+                                    costo = float(costo.replace(",", ""))  # Elimina las comas si las hay
+                                    if costo < 0:
+                                        st.error(f"El costo del producto {i+1} debe ser un valor positivo.")
+                                except ValueError:
+                                    st.error(f"Formato de costo del producto {i+1} incorrecto. Introduce un número válido.")
 
-                # Botón para analizar los costos
-                if st.button("Analizar costos"):
-                    # Acción de analizar costos y calcular precio al público aquí
-                    st.write("Se analizarán los costos y se calculará el precio al público aquí.")
-                    # Aquí deberías incluir el cálculo del precio al público y cualquier otra lógica necesaria
+                        with col4:
+                            # Botón para eliminar la fila
+                            if st.session_state['num_insumos'] > 1:
+                                if st.button(f"Eliminar", help="Eliminar producto", key=f"delete_button_{i}"):
+                                    # Eliminar el insumo correspondiente al índice actual
+                                    st.session_state['num_insumos'] -= 1
+                                    # Acción de eliminar el producto aquí
+
+                        # Almacenar los datos del insumo actual en la lista
+                        insumos_data.append({
+                            'Descripción': descripciondeproducto,
+                            'Cantidad': cantidad,
+                            'Costo': costo
+                        })
+
+                    # Botón para agregar otro elemento
+                    if st.button("Agregar otro insumo"):
+                        st.session_state['num_insumos'] += 1
+
+                    # Botón para analizar los costos
+                    if st.button("Analizar costos"):
+                        # Acción de analizar costos y calcular precio al público aquí
+                        st.write("Se analizarán los costos y se calculará el precio al público aquí.")
+                        # Aquí deberías incluir el cálculo del precio al público y cualquier otra lógica necesaria
+                        
+                        # Creamos un DataFrame con los datos de todos los insumos
+                        insumos_df = pd.DataFrame(insumos_data)
+
+                        # Se calcula el precio al público agregando el 35% al costo
+                        insumos_df['Precio al público'] = insumos_df['Costo'] * 1.35
+
+                        # Se muestra el DataFrame con el cálculo del precio al público
+                        st.dataframe(insumos_df)
                     
-                    # Creamos un DataFrame con los datos de todos los insumos
-                    insumos_df = pd.DataFrame(insumos_data)
+                else:
+                    # Cargar y mostrar datos del distribuidor seleccionado
+                    datos_distribuidor = cargar_datos_distribuidor(marca_seleccionada)
 
-                    # Se calcula el precio al público agregando el 35% al costo
-                    insumos_df['Precio al público'] = insumos_df['Costo'] * 1.35
+                    # Mostrar los datos según la cantidad
+                    cantidad_insumos = []
+                    for producto in datos_distribuidor:
+                        descripcion = producto["Descripción"]
+                        cantidad = st.number_input(f'{descripcion}:', min_value=0, value=0, step=1)
+                        if cantidad != 0:
+                            cantidad_insumos.append({'Descripción': descripcion, 'Cantidad': cantidad})
 
-                    # Se muestra el DataFrame con el cálculo del precio al público
-                    st.dataframe(insumos_df)
-                    
-                    
+                    # Si hay productos con cantidad diferente de 0, mostrar el DataFrame
+                    if cantidad_insumos:
+                        insumos_df = pd.DataFrame(cantidad_insumos)
+                        st.write("Productos con cantidad diferente de 0:")
+                        st.dataframe(insumos_df[['Descripción', 'Cantidad', ]])
+                    else:
+                        st.write("No hay productos con cantidad diferente de 0.")
 
-
-              
+                  
+                    # Botón para analizar los costos
+                    if st.button("Analizar costos"):
+                        # Acción de analizar costos y calcular precio al público aquí
+                        st.write("Se analizarán los costos y se calculará el precio al público aquí.")
+                        # Aquí deberías incluir el cálculo del precio al público y cualquier otra lógica necesaria
+            
             elif concepto == 'Capacitación':
                 # Mostrar campos específicos para Capacitación
                 # Aquí puedes agregar los campos necesarios para este tipo de servicio
