@@ -485,10 +485,15 @@ def MainApp():
                     # Mostrar los datos según la cantidad
                     cantidad_insumos = []
                     for producto in datos_distribuidor:
-                        descripcion = producto["Descripción"]
-                        cantidad = st.number_input(f'{descripcion}:', min_value=0, value=0, step=1)
-                        if cantidad != 0:
-                            cantidad_insumos.append({'Descripción': descripcion, 'Cantidad': cantidad})
+                        col1, col2 = st.columns([1,1])
+                        
+                        with col1:
+                            descripcion = producto["Descripción"]
+    
+                        with col2:
+                            cantidad = st.number_input(f'{descripcion}:', min_value=0, value=0, step=1)
+                            if cantidad != 0:
+                                cantidad_insumos.append({'Descripción': descripcion, 'Cantidad': cantidad})
 
                     # Si hay productos con cantidad diferente de 0, mostrar el DataFrame
                     if cantidad_insumos:
