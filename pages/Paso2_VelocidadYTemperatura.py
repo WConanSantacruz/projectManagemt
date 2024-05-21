@@ -2,6 +2,8 @@ import numpy as np
 import streamlit as st
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
+import pandas as pd
+
 
 def fig2data(fig):
     fig.canvas.draw()
@@ -10,25 +12,28 @@ def fig2data(fig):
     return data.reshape((height, width, 3))
 
 def MainApp():
-    st.title("Análisis de experimentos para parametrización")
-    material=st.text_input("Titulo del experimento")
+    st.title("Prueba de temperatura y velocidad")
+
+    materialesInfo = pd.read_csv("resources\Materiales.csv")
+    tipos=materialesInfo["Material"]
+
+    material = st.selectbox(
+    "Selecciona el tipo de material a calibrar",
+    tipos)
 
     # Factor 1
-    st.markdown("## Factor 1")
-    namFactor1 = st.text_input("Inserta el nombre del factor 1", "Factor 1")
-    Factor1 = st.number_input("Inserta el factor 1 recomendado", 10, 400, 200)
-    Varianza1 = st.number_input("Inserta la varianza del factor 1", 5, 40, 20)
-    minF1, maxF1 = Factor1 - Varianza1, Factor1 + Varianza1
+    namFactor1="Velocidad"
+    minV=int((materialesInfo.loc[materialesInfo["Material"] == material])["Vel_Min"])
+    maxV=int((materialesInfo.loc[materialesInfo["Material"] == material])["Vel_Max"])
+    minF1, maxF1 = minV, maxV
 
     # Factor 2
-    st.markdown("## Factor 2")
-    namFactor2 = st.text_input("Inserta el nombre del factor 2", "Factor 2")
-    Factor2 = st.number_input("Inserta el factor 2 recomendado", 10, 400, 200)
-    Varianza2 = st.number_input("Inserta la varianza del factor 2", 5, 40, 20)
-    minF2, maxF2 = Factor2 - Varianza2, Factor2 + Varianza2
+    namFactor2="Temperatura/Exposicion"
+    minT=int((materialesInfo.loc[materialesInfo["Material"] == material])["Temp/Exp_Min"])
+    maxT=int((materialesInfo.loc[materialesInfo["Material"] == material])["Temp/Exp_Max"])
+    minF2, maxF2 = minT, maxT
 
     # Generate grid points for plotting`
-    st.markdown("## Experimento")
     x1 = np.linspace(minF1, maxF1, 3)  # Values of factor 1
     x2 = np.linspace(minF2, maxF2, 3)  # Values of factor 2
     X_1, X_2 = np.meshgrid(x1, x2)
@@ -64,7 +69,7 @@ def MainApp():
         return coeffs[0] + coeffs[1]*x[0] + coeffs[2]*x[1] + coeffs[3]*x[0]**2 + coeffs[4]*x[1]**2 + coeffs[5]*x[0]*x[1]
 
     # Optimize the response function
-    initial_guess = [Factor1, Factor2]  # Initial guess for factor settings
+    initial_guess = [minF1, minF2]  # Initial guess for factor settings
     result = minimize(response_function, initial_guess, bounds=[(minF1, maxF1), (minF2, maxF2)])
 
     # Generate grid points for plotting the surface response

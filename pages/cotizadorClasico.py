@@ -131,9 +131,14 @@ def cargar_datos_distribuidor(marca):
     for index, row in datos_marca.iterrows():
         descripcion = row['Descripción']
         precio_distribuidor = row['Precio Distribuidor']
+        venta_sugerida = row['Venta Sugerida']
 
         # Agregar los datos a la lista
-        datos_seleccionados.append({'Descripción': descripcion, 'Precio Distribuidor': precio_distribuidor})
+        datos_seleccionados.append({
+            'Descripción': descripcion,
+            'Precio Distribuidor': precio_distribuidor,
+            'Venta Sugerida': venta_sugerida
+        })
 
     return datos_seleccionados
         
@@ -360,12 +365,19 @@ def MainApp():
                                 templateWorkbook.save(outputFilename)
                                 templateWorkbook.close()
 
-                                shutil.make_archive(name2Quota, 'zip',tempCarpet)
-                                st.markdown(f'Generado a las {datetime.now()}')
-                                zipName=f'{name2Quota}.zip'
-                                if os.path.exists(zipName):
-                                    with open(zipName, 'rb') as f:
-                                        st.download_button('Descargar', f, file_name=zipName)
+                        #Append Images 
+                        image_path = f"{tempCarpet}/joined_image.jpg"
+                        print(image_path)
+                        img=Image(image_path)
+                        destination_worksheet.add_image(img, 'A5')
+
+                        #Compresing Files
+                        shutil.make_archive(name2Quota, 'zip',tempCarpet)
+                        st.markdown(f'Generado a las {datetime.now()}')
+                        zipName=f'{name2Quota}.zip'
+                        if os.path.exists(zipName):
+                            with open(zipName, 'rb') as f:
+                                st.download_button('Descargar', f, file_name=zipName)
 
                             if(areQuotaGenerated()):
                                 if st.button("Subir a la carpeta de proyectos"):
@@ -485,30 +497,41 @@ def MainApp():
                     # Mostrar los datos según la cantidad
                     cantidad_insumos = []
                     for producto in datos_distribuidor:
-                        col1, col2 = st.columns([1,1])
-                        
+                        col1, col2 = st.columns([2, 1])  # Ajustar la proporción de las columnas
+
                         with col1:
                             descripcion = producto["Descripción"]
-    
+                            st.write(descripcion)  # Mostrar descripción en la primera columna
+
                         with col2:
-                            cantidad = st.number_input(f'{descripcion}:', min_value=0, value=0, step=1)
+                            cantidad = st.number_input(f'{descripcion} cantidad', min_value=0, value=0, step=1, label_visibility='collapsed')
                             if cantidad != 0:
-                                cantidad_insumos.append({'Descripción': descripcion, 'Cantidad': cantidad})
+                                 # Calcular precios con IVA
+                                precio_distribuidor_iva = producto['Precio Distribuidor'] * 1.16
+                                venta_sugerida_iva = producto['Venta Sugerida'] * 1.16
+                                    
+                                cantidad_insumos.append({
+                                    'Descripción': descripcion,
+                                    'Cantidad': cantidad,
+                                    'Precio Distribuidor (sin IVA)': producto['Precio Distribuidor'],
+                                    'Precio Distribuidor (con IVA)': precio_distribuidor_iva,
+                                    'Venta sugerida (sin IVA)': producto['Venta Sugerida'],
+                                    'Venta sugerida (con IVA)': venta_sugerida_iva
+                                })
 
                     # Si hay productos con cantidad diferente de 0, mostrar el DataFrame
                     if cantidad_insumos:
                         insumos_df = pd.DataFrame(cantidad_insumos)
                         st.write("Productos con cantidad diferente de 0:")
-                        st.dataframe(insumos_df[['Descripción', 'Cantidad', ]])
+                        st.dataframe(insumos_df[['Descripción', 'Cantidad', 'Precio Distribuidor (sin IVA)', 'Precio Distribuidor (con IVA)', 'Venta sugerida (sin IVA)', 'Venta sugerida (con IVA)']])
                     else:
                         st.write("No hay productos con cantidad diferente de 0.")
 
-                  
                     # Botón para analizar los costos
-                    if st.button("Analizar costos"):
-                        # Acción de analizar costos y calcular precio al público aquí
+                    if st.button("Preparar cotización"):
                         st.write("Se analizarán los costos y se calculará el precio al público aquí.")
                         # Aquí deberías incluir el cálculo del precio al público y cualquier otra lógica necesaria
+
             
             elif concepto == 'Capacitación':
                 # Mostrar campos específicos para Capacitación
