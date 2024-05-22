@@ -224,48 +224,48 @@ def MainApp():
                 args = [material, relleno, try2Fix]
                 formats=[]
                 
-                data = st.file_uploader(f"Inserta los archivos para la cotización, solo {formats}", type=formats, accept_multiple_files=True)
-                st.markdown('---')
-
                 for i in trimesh.available_formats():
                     formats.append(f".{i}")
                     # Loading data
-                   
+                
+                data = st.file_uploader(f"Inserta los archivos para la cotización, solo {formats}", type=formats, accept_multiple_files=True)
+                st.markdown('---')
+
                 # Resto del código para analizar, mostrar imágenes, preparar cotización, etc.
-                    if len(data) > 0:
+                if len(data) > 0:
                     # Converting files if requested
-                        if st.button('Analiza los archivos'):
-                            cleanOldFiles()
-                            # Escritura de archivos en tempCarpet
-                            for cad in data:
-                                source = os.path.join(tempCarpet, cad.name)
-                                dest = os.path.splitext(source)[0] + '.stl'
-                                with open(source, "wb") as f:
-                                    f.write(cad.getbuffer())
-                                
-                                st.write(f'Cargando: {os.path.basename(source)}...')
+                    if st.button('Analiza los archivos'):
+                        cleanOldFiles()
+                        # Escritura de archivos en tempCarpet
+                        for cad in data:
+                            source = os.path.join(tempCarpet, cad.name)
+                            dest = os.path.splitext(source)[0] + '.stl'
+                            with open(source, "wb") as f:
+                                f.write(cad.getbuffer())
                             
-                            st.write('Analizando, ...')
-                            
-                            if incluirElEnvio:
-                                command2Send = f'{sys.executable} CotizadorCMD.py {args[0]} {args[1]} {args[2]} {int(shipping_cost)*100}'
-                                print(command2Send)
-                                os.system(command2Send)
-                            else:
-                                command2Send = f'{sys.executable} CotizadorCMD.py {args[0]} {args[1]} {args[2]} {0}'
-                                print(command2Send)
-                                os.system(command2Send)
-                            
-                            dest = os.path.join(tempCarpet, 'info.csv')
-                            dest2 = os.path.join(tempCarpet, 'easy.csv')
-                            if os.path.exists(dest) and os.path.exists(dest2):
-                                st.markdown('Se han analizado los archivos correctamente')
-                                df = pd.read_csv(dest)
-                                easy2read = pd.read_csv(dest2)
-                                st.dataframe(easy2read)
-                                st.dataframe(df)
-                            else:
-                                st.markdown('Ha habido un error')
+                            st.write(f'Cargando: {os.path.basename(source)}...')
+                        
+                        st.write('Analizando, ...')
+                        
+                        if incluirElEnvio:
+                            command2Send = f'{sys.executable} CotizadorCMD.py {args[0]} {args[1]} {args[2]} {int(shipping_cost)*100}'
+                            print(command2Send)
+                            os.system(command2Send)
+                        else:
+                            command2Send = f'{sys.executable} CotizadorCMD.py {args[0]} {args[1]} {args[2]} {0}'
+                            print(command2Send)
+                            os.system(command2Send)
+                        
+                        dest = os.path.join(tempCarpet, 'info.csv')
+                        dest2 = os.path.join(tempCarpet, 'easy.csv')
+                        if os.path.exists(dest) and os.path.exists(dest2):
+                            st.markdown('Se han analizado los archivos correctamente')
+                            df = pd.read_csv(dest)
+                            easy2read = pd.read_csv(dest2)
+                            st.dataframe(easy2read)
+                            st.dataframe(df)
+                        else:
+                            st.markdown('Ha habido un error')
 
                         # Procesamiento de imágenes generadas
                         if areImagesGenerated():
@@ -537,7 +537,5 @@ def MainApp():
                 # Mostrar campos específicos para Capacitación
                 # Aquí puedes agregar los campos necesarios para este tipo de servicio
                 ...
-
-           
-            
+         
 MainApp()
