@@ -156,6 +156,7 @@ def MainApp():
     if st.session_state['Estado'] == 0:
         cleanOldFiles()
         st.session_state['quotaNumber'] = getNextQuotaNumber(rootdir)
+        print(st.session_state['quotaNumber'])
         st.session_state['Estado'] = 1
         st.rerun() 
     else:
@@ -299,7 +300,7 @@ def MainApp():
                                 for img_path, _ in all_image_paths:
                                     st.image(PILImage.open(img_path), caption=os.path.basename(img_path), width=200)
                             
-                            # Eliminar la imagen combinada de la lista de imágenes para que no se repita
+                                # Eliminar la imagen combinada de la lista de imágenes para que no se repita
                                 processed_image_paths.discard(join_image_path)
                                 
                     dest = os.path.join(tempCarpet, 'easy.csv')

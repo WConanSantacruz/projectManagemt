@@ -2,8 +2,6 @@ import os
 import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
-import requests
-import wget
 
 load_dotenv()
 url = os.getenv('WebAppURL')
@@ -15,5 +13,7 @@ params = {'key': os.getenv('AccessKey')}
 
 def MainApp():
     st.title("Sistema de Captis")
+    st.markdown("Selecciona la pestaña que necesites")
+    
 MainApp()
     

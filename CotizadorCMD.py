@@ -166,37 +166,43 @@ easy2read = df[['Nombre', 'Material', 'Relleno',
                 'CostoAntesDeIVA', 'CostoConIVA']]
 easy2read.to_csv(carpeta + "\\"+'easy.csv', index=False)
 
+
 # Create empty list to store images
-# Loop through images in folder and append to list
-numImages = 0
 images = []
+
+# Loop through images in the folder and append to the list
 for filename in os.listdir(carpeta):
     if filename.endswith('.jpg') or filename.endswith('.png'):
         filepath = os.path.join(carpeta, filename)
         images.append(Image.open(filepath))
-        numImages += 1
 
-# Specify the aurum number (replace this with the actual value), that can generate the a longer image
-aurum_number = 1.618/2  # You can adjust this value based on your preference
+# Specify the aurum number (golden ratio) to determine the layout
+aurum_number = 1.618/2 # Adjust this value based on your preference
 
-# Compute the number of rows based on the aurum number
-num_rows = max(int(numImages / aurum_number), 1)
+# Compute the number of columns based on the aurum number
+num_images = len(images)
+num_columns = max(int(num_images / aurum_number), 1)
+num_rows = -(-num_images // num_columns)  # Ceiling division to get the number of rows
 
-# Determine size of final image
+# Determine the maximum width and height of the final image
 max_width = max(image.size[0] for image in images)
-total_height = sum(image.size[1] for image in images) // num_rows
+max_height = max(image.size[1] for image in images)
+total_width = max_width * num_columns
+total_height = max_height * num_rows
 
-# Create a new image with determined size
-new_image = Image.new('RGB', (max_width, total_height))
+# Create a new image with the determined size
+new_image = Image.new('RGB', (total_width, total_height))
 
-# Paste images onto new image in a mosaic pattern
+# Paste images onto the new image in a mosaic pattern
 x_offset, y_offset = 0, 0
-for image in images:
+for idx, image in enumerate(images):
     new_image.paste(image, (x_offset, y_offset))
-    y_offset += image.size[1]
-    if y_offset >= total_height:
+    y_offset += max_height
+    if (idx + 1) % num_rows == 0:  # Move to the next column after filling the current column
         y_offset = 0
         x_offset += max_width
+        
+new_image.resize((int(new_image.size[0]/2),int(new_image.size[1]/2)))
 
 # Save the final image
 new_image.save(os.path.join(carpeta, 'joined_image.jpg'))
