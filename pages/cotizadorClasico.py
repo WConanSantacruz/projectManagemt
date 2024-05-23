@@ -302,106 +302,108 @@ def MainApp():
                             # Eliminar la imagen combinada de la lista de imágenes para que no se repita
                                 processed_image_paths.discard(join_image_path)
                                 
-                        dest = os.path.join(tempCarpet, 'easy.csv')
-                        if os.path.exists(dest):
-                            if st.button('Preparar la cotizacion'):
-                                st.markdown(f'Generando...')
-                                infoCsv = os.path.join(tempCarpet, "easy.csv")
-                                df = pd.read_csv(infoCsv)
-                                path2Template = 'resources\Template.xlsx'
-                                outputFilename = os.path.join(tempCarpet, name2Quota + '.xlsx')
+                    dest = os.path.join(tempCarpet, 'easy.csv')
+                    if os.path.exists(dest):
+                        if st.button('Preparar la cotizacion'):
+                            st.markdown(f'Generando...')
+                            infoCsv = os.path.join(tempCarpet, "easy.csv")
+                            df = pd.read_csv(infoCsv)
+                            path2Template = 'resources\Template.xlsx'
+                            outputFilename = os.path.join(tempCarpet, name2Quota + '.xlsx')
 
-                                templateWorkbook = load_workbook(path2Template)
-                                destination_worksheet = templateWorkbook['Quota']
-                                totals_worksheet=templateWorkbook['Datos']
-                                if len(cliente)==0:
-                                    cliente="Cliente "+name2Quota
-                                destination_worksheet['B3'].value = cliente
-                                destination_worksheet['B4'].value = concepto
-                                destination_worksheet['G1'].value = name2Quota
-                                destination_worksheet['G2'].value = fecha_actual.strftime("%d / %m / %y")
-                                destination_worksheet['G4'].value = moneda
-                                destination_worksheet['G4'].value = empresa
+                            templateWorkbook = load_workbook(path2Template)
+                            destination_worksheet = templateWorkbook['Quota']
+                            totals_worksheet=templateWorkbook['Datos']
+                            if len(cliente)==0:
+                                cliente="Cliente "+name2Quota
+                            destination_worksheet['B3'].value = cliente
+                            destination_worksheet['B4'].value = concepto
+                            destination_worksheet['G1'].value = name2Quota
+                            destination_worksheet['G2'].value = fecha_actual.strftime("%d / %m / %y")
+                            destination_worksheet['G4'].value = moneda
+                            destination_worksheet['G4'].value = empresa
 
 
-                                df = df.assign(Cantidad=1)
-                                df = df.assign(Subtotal=df['CostoConIVA'])
+                            df = df.assign(Cantidad=1)
+                            df = df.assign(Subtotal=df['CostoConIVA'])
 
-                                start_row = 12
-                                for row in dataframe_to_rows(df, index=False, header=False):
-                                    for idx, value in enumerate(row, start=1):
-                                        destination_worksheet.cell(row=start_row, column=idx, value=value)
-                                    start_row += 1
-
-                                getMaterial=df['Material'][0]
-                                print("Informacion del material selecionado:")
-                                print(getMaterial)
-                                dfmat = pd.read_csv("resources\Materiales.csv")
-                                infoMaterial = dfmat[dfmat["Material"] == getMaterial]
-                                print(infoMaterial)
-                                
-                                if incluirElEnvio:
-                                    shipping_cost=0
-                                destination_worksheet.cell(row=start_row, column=1).value=envio
-                                shipping_cost = shipping_cost  
-                                destination_worksheet.cell(row=start_row, column=4).value = shipping_cost
-                                destination_worksheet.cell(row=start_row, column=5).value = shipping_cost * 1.16
-                                destination_worksheet.cell(row=start_row, column=6).value = 1
-                                destination_worksheet.cell(row=start_row, column=7).value = shipping_cost * 1.16
+                            start_row = 12
+                            for row in dataframe_to_rows(df, index=False, header=False):
+                                for idx, value in enumerate(row, start=1):
+                                    destination_worksheet.cell(row=start_row, column=idx, value=value)
                                 start_row += 1
 
-                                total = df['CostoConIVA'].sum()+float(shipping_cost)*1.16
+                            getMaterial=df['Material'][0]
+                            print("Informacion del material selecionado:")
+                            print(getMaterial)
+                            dfmat = pd.read_csv("resources\Materiales.csv")
+                            infoMaterial = dfmat[dfmat["Material"] == getMaterial]
+                            print(infoMaterial)
+                            
+                            if incluirElEnvio:
+                                shipping_cost=0
+                            destination_worksheet.cell(row=start_row, column=1).value=envio
+                            shipping_cost = shipping_cost  
+                            destination_worksheet.cell(row=start_row, column=4).value = shipping_cost
+                            destination_worksheet.cell(row=start_row, column=5).value = shipping_cost * 1.16
+                            destination_worksheet.cell(row=start_row, column=6).value = 1
+                            destination_worksheet.cell(row=start_row, column=7).value = shipping_cost * 1.16
+                            start_row += 1
 
-                                if estudiante:
-                                    destination_worksheet.cell(row=start_row, column=1).value="Descuento del 15%"
-                                    destination_worksheet.cell(row=start_row, column=7).value=-total*0.15
-                                    
-                                infoCsv = os.path.join(tempCarpet, "info.csv")
-                                dftotals = pd.read_csv(infoCsv)
-                                timeInDays = f"{np.round((dftotals['TiempoEstimado'].sum()/60/24+1)*1.61,0)}"
-                                totals_worksheet.cell(row=3, column=3).value=timeInDays
+                            total = df['CostoConIVA'].sum()+float(shipping_cost)*1.16
 
-                                st.markdown(f"Total de tiempo: {timeInDays} dias habiles")
-                                templateWorkbook.save(outputFilename)
-                                templateWorkbook.close()
+                            if estudiante:
+                                destination_worksheet.cell(row=start_row, column=1).value="Descuento del 15%"
+                                destination_worksheet.cell(row=start_row, column=7).value=-total*0.15
+                                
+                            infoCsv = os.path.join(tempCarpet, "info.csv")
+                            dftotals = pd.read_csv(infoCsv)
+                            timeInDays = f"{np.round((dftotals['TiempoEstimado'].sum()/60/24+1)*1.61,0)}"
+                            totals_worksheet.cell(row=3, column=3).value=timeInDays
+                            st.markdown(f"Total de tiempo: {timeInDays} dias habiles")
 
-                        #Append Images 
-                        image_path = f"{tempCarpet}/joined_image.jpg"
-                        print(image_path)
-                        img=Image(image_path)
-                        destination_worksheet.add_image(img, 'A5')
+                            
+                            #Append Images 
+                            image_path = f"{tempCarpet}/joined_image.jpg"
+                            print(image_path)
+                            img=Image(image_path)
+                            destination_worksheet.add_image(img, 'A5')
 
-                        #Compresing Files
-                        shutil.make_archive(name2Quota, 'zip',tempCarpet)
-                        st.markdown(f'Generado a las {datetime.now()}')
-                        zipName=f'{name2Quota}.zip'
-                        if os.path.exists(zipName):
-                            with open(zipName, 'rb') as f:
-                                st.download_button('Descargar', f, file_name=zipName)
+                            templateWorkbook.save(outputFilename)
+                            templateWorkbook.close()
 
-                            if(areQuotaGenerated()):
-                                if st.button("Subir a la carpeta de proyectos"):
-                                    #Movinig to a project carpet to be generated
-                                    projectFolder=os.path.join(rootdir,name2Quota)
-                                    if not os.path.exists(projectFolder):
-                                        os.mkdir(projectFolder)
-                                    else:
-                                        cleanActualProjectCarpet(projectFolder)
+                            #Compresing Files
+                            shutil.make_archive(name2Quota, 'zip',tempCarpet)
+                            st.markdown(f'Generado a las {datetime.now()}')
+                                
+                            zipName=f'{name2Quota}.zip'
+                            if os.path.exists(zipName):
+                                with open(zipName, 'rb') as f:
+                                    st.download_button('Descargar', f, file_name=zipName)
 
-                                    for file_name in os.listdir(tempCarpet):
-                                        # construct full file path
-                                        source = os.path.join(tempCarpet,file_name)
-                                        destination = os.path.join(projectFolder,file_name)
-                                        # copy only files
-                                        if os.path.isfile(source):
-                                            shutil.copy(source, destination)
-                                            print('Copiado', file_name)
-                                    st.session_state['Estado'] = 2
-                                    st.success("Uploaded")
-                                    if(st.button("Confirmar")):
-                                        st.rerun()
-                        else:
-                            st.markdown('Aun no se han analizado los archivos')
+                                if(areQuotaGenerated()):
+                                    if st.button("Subir a la carpeta de proyectos"):
+                                        #Movinig to a project carpet to be generated
+                                        projectFolder=os.path.join(rootdir,name2Quota)
+                                        if not os.path.exists(projectFolder):
+                                            os.mkdir(projectFolder)
+                                        else:
+                                            cleanActualProjectCarpet(projectFolder)
+
+                                        for file_name in os.listdir(tempCarpet):
+                                            # construct full file path
+                                            source = os.path.join(tempCarpet,file_name)
+                                            destination = os.path.join(projectFolder,file_name)
+                                            # copy only files
+                                            if os.path.isfile(source):
+                                                shutil.copy(source, destination)
+                                                print('Copiado', file_name)
+                                        st.session_state['Estado'] = 2
+                                        st.success("Uploaded")
+                                        if(st.button("Confirmar")):
+                                            st.rerun()
+                            else:
+                                st.markdown('Aun no se han analizado los archivos')
                     
             
             elif concepto == 'Diseño o modelado 3D':
