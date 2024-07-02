@@ -14,13 +14,13 @@ from dotenv import load_dotenv
 from openpyxl import load_workbook
 from openpyxl.drawing.image import Image
 from openpyxl.utils.dataframe import dataframe_to_rows
-from PIL import Image as PILImage, ImageDraw, ImageFont
+from PIL import Image as PILImage
 import streamlit as st
 
 load_dotenv()
 tempCarpet = os.getenv('carpetaTemporal')
 scaledFolder=os.getenv('scaledFolder')
-savingFolder=f"{tempCarpet}\{scaledFolder}"
+savingFolder = os.path.join(tempCarpet, scaledFolder)
 
 def getActualGfolder(year,month):
     pathGoogle=os.getenv('GooglePath')
@@ -160,7 +160,8 @@ def MainApp():
             cliente = st.text_input('Nombre del cliente')
             empresa = st.text_input('Empresa')
             estudiante = st.checkbox("Es estudiante?")
-            materialesInfo = pd.read_csv("resources\Materiales.csv")
+            materialPath= os.path.join("resources", "Materiales.csv")
+            materialesInfo = pd.read_csv(materialPath)
             
             envio = st.radio(
                 'Selecciona el tipo de envio',
@@ -272,7 +273,7 @@ def MainApp():
                         st.markdown(f'Generando...')
                         infoCsv = os.path.join(tempCarpet, "easy.csv")
                         df = pd.read_csv(infoCsv)
-                        path2Template = 'resources\Template.xlsx'
+                        path2Template = fr'resources\Template.xlsx'
                         outputFilename = os.path.join(tempCarpet, name2Quota + '.xlsx')
 
                         templateWorkbook = load_workbook(path2Template)
@@ -299,7 +300,7 @@ def MainApp():
                         getMaterial=df['Material'][0]
                         print("Informacion del material selecionado:")
                         print(getMaterial)
-                        dfmat = pd.read_csv("resources\Materiales.csv")
+                        dfmat = pd.read_csv(fr"resources\Materiales.csv")
                         infoMaterial = dfmat[dfmat["Material"] == getMaterial]
                         print(infoMaterial)
                         
