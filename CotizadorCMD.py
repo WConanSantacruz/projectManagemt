@@ -76,22 +76,24 @@ infoMaterial = df[df["Material"] == material]
 Densidad = infoMaterial['Densidad'].to_numpy()[0]
 materialPrice = infoMaterial['PrecioGramo'].to_numpy()[0]
 precioCarga = infoMaterial['PrecioCarga'].to_numpy()[0]
+tipo=infoMaterial['Tipo'].to_string()[0]
 
 print(
     f'Densidad:{Densidad},materialPrice:{materialPrice},precioCarga:{precioCarga}')
 
-factorDeVelocidad = 60
+factorDeVelocidad = 180 #mm/s
 AreaDeFilamentos = 1.75*1.75*3.14*300
 print("Costo por gramo del material"+str(materialPrice))
 
-FactorGanancia = 0.45
+FactorGanancia = 0.3
 # Impuestos a considerar
 FactorISR = 0.3
 FactorIVA = 0.16
 Impuestos = FactorISR+FactorIVA
 FactorMul = (1+FactorGanancia)*(1+FactorISR+FactorIVA)
-# Costo del día operable por equipo
-costoDia = 256
+
+# Salario minimo
+costoDia = 278.8
 
 x = datetime.now()
 year = x.year
@@ -122,43 +124,89 @@ if NumFiles<4:
 else:
     extraPorLoad=(precioCarga+NumFiles*precioCarga/3+shipping_cost)/NumFiles
 print(f"extra per load: {extraPorLoad}")
+
 data = []
-with os.scandir(carpeta) as it:
-    for entry in it:
-        if entry.is_file() and entry.name.lower().endswith(extensiones):
-            print("Computando " + entry.path)
-            (Sx, Sy, Sz, volumenEstimado, areaEstimada) = getInfoMesh(
-                entry.path, try2Fix)
-            print(f'Tamaño(mm): {Sx} \t {Sy} \t {Sz} \t{volumenEstimado}')
-            Paredes = 3
-            area_por_capa = areaEstimada/(2*3*(10*10))
-            tiempoVolumen = volumenEstimado/1000*infill*factorDeVelocidad/60*2
-            tiempoParedes = area_por_capa*factorDeVelocidad/60*4
-            tiempoEstimado = tiempoVolumen+tiempoParedes
-            materialNecesario = volumenEstimado/1000 * \
-                infill*0.4+area_por_capa*0.4*Paredes*0.6
-            totalMaterial += materialNecesario
-            costoMaterial = materialNecesario*materialPrice
-            costoTiempo = (tiempoParedes+tiempoVolumen) * \
-                (costoDia*FactorGanancia)/(10*60)
-            costo = costoMaterial+costoTiempo+extraPorLoad
-            CostoAntesDeIVA = costo*(1+FactorGanancia+FactorISR)
-            CostoConIVA = CostoAntesDeIVA*(1+FactorIVA)
-            totalSinIVA += CostoAntesDeIVA
-            totalTiempo += tiempoEstimado
-            fileName = os.path.basename(entry.path)
-            infod = item2Quota(fileName, Sx, Sy, Sz, areaEstimada, volumenEstimado, material, infill,
-                               materialNecesario, tiempoEstimado, CostoAntesDeIVA, CostoConIVA)
-            if renderImage:
-                photoName = render3DModel(entry.path, carpeta)
-                infod.setImage(photoName)
-            data.append(infod)
+if(tipo=='FDM'): 
+    #Computations for FDM
+    with os.scandir(carpeta) as it:
+        for entry in it:
+            if entry.is_file() and entry.name.lower().endswith(extensiones):
+                print("Computando " + entry.path)
+                (Sx, Sy, Sz, volumenEstimado, areaEstimada) = getInfoMesh(
+                    entry.path, try2Fix)
+                print(f'Tamaño(mm): {Sx} \t {Sy} \t {Sz} \t{volumenEstimado}')
+                Paredes = 3
+                area_por_capa = areaEstimada/(2*3*(10*10))
+                tiempoVolumen = volumenEstimado/1000*infill*factorDeVelocidad/60*2
+                tiempoParedes = area_por_capa*factorDeVelocidad/60*4
+                tiempoEstimado = tiempoVolumen+tiempoParedes
+                materialNecesario = volumenEstimado/1000 * \
+                    infill*0.4+area_por_capa*0.4*Paredes*0.6
+                totalMaterial += materialNecesario
+                costoMaterial = materialNecesario*materialPrice
+                costoTiempo = (tiempoParedes+tiempoVolumen) * \
+                    (costoDia*FactorGanancia)/(10*60)
+                costo = costoMaterial+costoTiempo+extraPorLoad
+                CostoAntesDeIVA = costo*(1+FactorGanancia+FactorISR)
+                CostoConIVA = CostoAntesDeIVA*(1+FactorIVA)
+                totalSinIVA += CostoAntesDeIVA
+                totalTiempo += tiempoEstimado
+                fileName = os.path.basename(entry.path)
+                infod = item2Quota(fileName, Sx, Sy, Sz, areaEstimada, volumenEstimado, material, infill,
+                                materialNecesario, tiempoEstimado, CostoAntesDeIVA, CostoConIVA)
+                if renderImage:
+                    photoName = render3DModel(entry.path, carpeta)
+                    infod.setImage(photoName)
+                data.append(infod)
+else:
+    #InfoSLA
+    with os.scandir(carpeta) as it:
+        for entry in it:
+            if entry.is_file() and entry.name.lower().endswith(extensiones):
+                print("Computando " + entry.path)
+                (Sx, Sy, Sz, volumenEstimado, areaEstimada) = getInfoMesh(
+                    entry.path, try2Fix)
+                print(f'Tamaño(mm): {Sx} \t {Sy} \t {Sz} \t{volumenEstimado}')
+                area_por_capa = areaEstimada/(2*3*(10*10))
+                paredes=3
+                materialNecesario = volumenEstimado/1000 * \
+                    infill*0.4+area_por_capa*0.4*paredes*0.6
+                totalMaterial += materialNecesario
+                costoMaterial = materialNecesario*materialPrice
+                
+                layers=Sz/0.050
+                tiempoCurado=3
+                tiempoMovimiento=2
+                tiempoDeFondo=240
+                timePerLayer=layers*(tiempoCurado+tiempoMovimiento)
+                tiempoEstimado = timePerLayer+240
+                tiempoDeLimpieza = min(max(tiempoEstimado/16, 5 * 60),30*60)      
+
+                costoTiempo = (tiempoEstimado+tiempoDeLimpieza) * \
+                    (costoDia*FactorGanancia)/(10*60)
+                
+                print(f'Time SLA: {tiempoEstimado} \t Cleanning: {tiempoDeLimpieza} \t {Sy} \t {Sz} \t{volumenEstimado}')
+                
+                costo = costoMaterial+costoTiempo+extraPorLoad
+                CostoAntesDeIVA = costo*(1+FactorGanancia+FactorISR)
+                CostoConIVA = CostoAntesDeIVA*(1+FactorIVA)
+                totalSinIVA += CostoAntesDeIVA
+                totalTiempo += tiempoEstimado
+                fileName = os.path.basename(entry.path)
+                infod = item2Quota(fileName, Sx, Sy, Sz, areaEstimada, volumenEstimado, material, infill,
+                                materialNecesario, tiempoEstimado, CostoAntesDeIVA, CostoConIVA)
+                if renderImage:
+                    photoName = render3DModel(entry.path, carpeta)
+                    infod.setImage(photoName)
+                data.append(infod)
+
 
 df = pd.DataFrame([[
     x.Name, x.Sx, x.Sy, x.Sz, x.Volumen,
     x.TipoDeMaterial, x.Relleno, x.MaterialRequerido, x.Tiempo, x.PrecioSinIVA, x.PrecioConIVA] for x in data],
     columns=['Nombre', 'Sx', 'Sy', 'Sz', 'Volumen',
              'Material', 'Relleno', 'MaterialEstimado', 'TiempoEstimado', 'CostoAntesDeIVA', 'CostoConIVA'])
+
 
 df.to_csv(carpeta+"\\info.csv", index=False)
 

@@ -343,29 +343,30 @@ def MainApp():
                         if os.path.exists(zipName):
                             with open(zipName, 'rb') as f:
                                 st.download_button('Descargar', f, file_name=zipName)
-
-                            if(areQuotaGenerated()):
-                                if st.button("Subir a la carpeta de proyectos"):
-                                    #Movinig to a project carpet to be generated
-                                    projectFolder=os.path.join(rootdir,name2Quota)
-                                    if not os.path.exists(projectFolder):
-                                        os.mkdir(projectFolder)
-                                    else:
-                                        cleanActualProjectCarpet(projectFolder)
-
-                                    for file_name in os.listdir(tempCarpet):
-                                        # construct full file path
-                                        source = os.path.join(tempCarpet,file_name)
-                                        destination = os.path.join(projectFolder,file_name)
-                                        # copy only files
-                                        if os.path.isfile(source):
-                                            shutil.copy(source, destination)
-                                            print('Copiado', file_name)
-                                    st.session_state['Estado'] = 2
-                                    st.success("Uploaded")
-                                    if(st.button("Confirmar")):
-                                        st.rerun()
                         else:
                             st.markdown('Aun no se han analizado los archivos')
+                            
+                    if(areQuotaGenerated()):
+                        if st.button("Subir a la carpeta de proyectos"):
+                            #Movinig to a project carpet to be generated
+                            projectFolder=os.path.join(rootdir,name2Quota)
+                            if not os.path.exists(projectFolder):
+                                os.mkdir(projectFolder)
+                            else:
+                                cleanActualProjectCarpet(projectFolder)
+
+                            for file_name in os.listdir(tempCarpet):
+                                # construct full file path
+                                source = os.path.join(tempCarpet,file_name)
+                                destination = os.path.join(projectFolder,file_name)
+                                # copy only files
+                                if os.path.isfile(source):
+                                    shutil.copy(source, destination)
+                                    print('Copiado', file_name)
+                            st.session_state['Estado'] = 2
+                            st.success("Uploaded")
+                            if(st.button("Confirmar")):
+                                st.rerun()
+
                             
 MainApp()
