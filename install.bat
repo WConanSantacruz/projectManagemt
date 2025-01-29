@@ -13,6 +13,7 @@ pip install -v python-dotenv
 pip install -v meshio
 pip install -v wget
 pip install -v scipy
-
+pip install -v tabulate
+pip install -v plotly
 echo "Ready"
 pause
